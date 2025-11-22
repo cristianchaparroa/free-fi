@@ -40,7 +40,7 @@ export interface EventItem {
  * Feature card data for landing page
  */
 export interface FeatureCard {
-  icon: React.ComponentType<{ size?: number }>;
+  icon: React.ComponentType<any>;
   title: string;
   desc: string;
   color: string;

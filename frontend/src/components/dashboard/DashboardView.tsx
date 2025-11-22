@@ -15,7 +15,7 @@
 'use client';
 
 import React from 'react';
-import { Globe, Activity, Zap } from 'lucide-react';
+import { Globe, Activity } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { BracketBox } from '@/components/ui/BracketBox';
 import { YieldChart } from '@/components/dashboard/YieldChart';
