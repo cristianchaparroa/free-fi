@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {OFT} from "@layerzero/oft/OFT.sol";
 import {Origin} from "@layerzero/oapp/OApp.sol";
 import {OFTMsgCodec} from "@layerzero/oft/libs/OFTMsgCodec.sol";
+import {SendParam, MessagingFee, MessagingReceipt, OFTReceipt} from "@layerzero/oft/interfaces/IOFT.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -13,7 +14,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  */
 interface IVault {
     function deposit(uint256 amount) external returns (uint256 shares);
+    function withdraw(uint256 shares) external returns (uint256 amount);
     function userShares(address user) external view returns (uint256);
+    function calculateUsdcAmount(uint256 shares) external view returns (uint256);
 }
 
 /**
@@ -123,6 +126,77 @@ contract YieldFlowOFT is OFT {
      */
     function getUsdcBalance() external view returns (uint256) {
         return USDC.balanceOf(address(this));
+    }
+
+    /**
+     * @notice Withdraw from vault and bridge USDC to destination chain in one transaction
+     * @param shares Amount of vault shares to withdraw
+     * @param dstEid Destination endpoint ID (target chain)
+     * @param recipient Recipient address on destination chain
+     * @param extraOptions Additional LayerZero options
+     * @return msgReceipt The LayerZero messaging receipt
+     * @return oftReceipt The OFT receipt
+     * @dev This is a convenience function that combines vault withdrawal and cross-chain bridging
+     */
+    function withdrawAndBridge(uint256 shares, uint32 dstEid, address recipient, bytes calldata extraOptions)
+        external
+        payable
+        returns (MessagingReceipt memory msgReceipt, OFTReceipt memory oftReceipt)
+    {
+        if (vaultAddress == address(0)) revert ZeroAddress();
+        if (shares == 0) revert InvalidAmount();
+        if (recipient == address(0)) revert ZeroAddress();
+
+        // Withdraw from vault on behalf of sender (gets USDC)
+        uint256 usdcAmount = IVault(vaultAddress).withdraw(shares);
+
+        // Mint OFT tokens to sender
+        _mint(msg.sender, usdcAmount);
+
+        // Prepare LayerZero send params
+        SendParam memory sendParam = SendParam({
+            dstEid: dstEid,
+            to: bytes32(uint256(uint160(recipient))),
+            amountLD: usdcAmount,
+            minAmountLD: (usdcAmount * 99) / 100, // 1% slippage
+            extraOptions: extraOptions,
+            composeMsg: "",
+            oftCmd: ""
+        });
+
+        // Execute cross-chain transfer
+        MessagingFee memory fee = MessagingFee({nativeFee: msg.value, lzTokenFee: 0});
+        (msgReceipt, oftReceipt) = this.send(sendParam, fee, payable(msg.sender));
+    }
+
+    /**
+     * @notice Quote the fee for withdrawing and bridging
+     * @param shares Amount of vault shares to withdraw
+     * @param dstEid Destination endpoint ID
+     * @param extraOptions Additional LayerZero options
+     * @return fee The messaging fee quote
+     */
+    function quoteWithdrawAndBridge(uint256 shares, uint32 dstEid, bytes calldata extraOptions)
+        external
+        view
+        returns (MessagingFee memory fee)
+    {
+        if (vaultAddress == address(0)) revert ZeroAddress();
+
+        // Get expected USDC amount from shares
+        uint256 usdcAmount = IVault(vaultAddress).calculateUsdcAmount(shares);
+
+        SendParam memory sendParam = SendParam({
+            dstEid: dstEid,
+            to: bytes32(uint256(uint160(msg.sender))),
+            amountLD: usdcAmount,
+            minAmountLD: (usdcAmount * 99) / 100,
+            extraOptions: extraOptions,
+            composeMsg: "",
+            oftCmd: ""
+        });
+
+        return this.quoteSend(sendParam, false);
     }
 
     /**
