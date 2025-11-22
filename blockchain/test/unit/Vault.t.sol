@@ -157,12 +157,7 @@ contract VaultTest is Test {
         uint256 grossAmount = depositAmount + yieldEarned;
         uint256 expectedNet = grossAmount * 9990 / 10000;
 
-        assertApproxEqAbs(
-            balanceAfter - balanceBefore,
-            expectedNet,
-            1,
-            "Incorrect withdrawal with yield"
-        );
+        assertApproxEqAbs(balanceAfter - balanceBefore, expectedNet, 1, "Incorrect withdrawal with yield");
         vm.stopPrank();
     }
 
@@ -186,7 +181,7 @@ contract VaultTest is Test {
 
     function testYieldDistributionProportional() public {
         uint256 amount1 = 1000e6; // User1: 1000 USDC
-        uint256 amount2 = 500e6;  // User2: 500 USDC
+        uint256 amount2 = 500e6; // User2: 500 USDC
 
         // Both users deposit
         vm.startPrank(user1);
@@ -272,11 +267,7 @@ contract VaultTest is Test {
         vm.prank(owner);
         vault.rebalance(strategy, depositAmount);
 
-        assertEq(
-            vault.strategyAllocations(strategy),
-            depositAmount,
-            "Incorrect allocation"
-        );
+        assertEq(vault.strategyAllocations(strategy), depositAmount, "Incorrect allocation");
     }
 
     /*//////////////////////////////////////////////////////////////
