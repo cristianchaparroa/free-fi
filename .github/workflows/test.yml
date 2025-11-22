@@ -15,17 +15,26 @@ jobs:
   check:
     name: Foundry project
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: blockchain
     steps:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Show Forge version
         run: forge --version
+
+      - name: Install dependencies
+        run: |
+          forge install foundry-rs/forge-std@v1.11.0 --no-git
+          forge install OpenZeppelin/openzeppelin-contracts@v5.5.0 --no-git
+          forge install OpenZeppelin/openzeppelin-contracts-upgradeable@v5.5.0 --no-git
+          forge install transmissions11/solmate@89365b880c4f3c786bdd453d4b8e8fe410344a69 --no-git
 
       - name: Run Forge fmt
         run: forge fmt --check
