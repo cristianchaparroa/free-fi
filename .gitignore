@@ -1,5 +1,6 @@
 # Foundry
-blockchain/cache/
+/blockchain/cache/
 blockchain/out/
 blockchain/lib/
 **/.idea
+blockchain/broadcast/
