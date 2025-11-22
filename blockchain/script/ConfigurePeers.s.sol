@@ -73,7 +73,7 @@ contract ConfigurePeers is Script {
      * @dev Connect to Arbitrum and Base
      */
     function _configureFromSepolia(YieldFlowOFTEVVM oft) internal {
-        console.log("Configuring Sepolia → Source Chains");
+        console.log("Configuring Sepolia -> Source Chains");
         console.log("");
 
         // Set Arbitrum Sepolia as peer
@@ -107,7 +107,7 @@ contract ConfigurePeers is Script {
      * @dev Connect to Sepolia destination
      */
     function _configureFromArbitrum(YieldFlowOFTEVVM oft) internal {
-        console.log("Configuring Arbitrum Sepolia → Sepolia");
+        console.log("Configuring Arbitrum Sepolia -> Sepolia");
         console.log("");
 
         address sepoliaOft = vm.envAddress("PEER_OFT_SEPOLIA");
@@ -125,7 +125,7 @@ contract ConfigurePeers is Script {
      * @dev Connect to Sepolia destination
      */
     function _configureFromBase(YieldFlowOFTEVVM oft) internal {
-        console.log("Configuring Base Sepolia → Sepolia");
+        console.log("Configuring Base Sepolia -> Sepolia");
         console.log("");
 
         address sepoliaOft = vm.envAddress("PEER_OFT_SEPOLIA");

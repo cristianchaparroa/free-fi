@@ -59,7 +59,7 @@ library Config {
      * @param chainId The chain ID
      * @return LayerZero endpoint address
      */
-    function getLZEndpoint(uint256 chainId) internal pure returns (address) {
+    function getLzEndpoint(uint256 chainId) internal pure returns (address) {
         if (chainId == SEPOLIA_CHAIN_ID) return SEPOLIA_LZ_ENDPOINT;
         if (chainId == ARBITRUM_SEPOLIA_CHAIN_ID) return ARBITRUM_SEPOLIA_LZ_ENDPOINT;
         if (chainId == BASE_SEPOLIA_CHAIN_ID) return BASE_SEPOLIA_LZ_ENDPOINT;
@@ -71,7 +71,7 @@ library Config {
      * @param chainId The chain ID
      * @return LayerZero endpoint ID
      */
-    function getLZEid(uint256 chainId) internal pure returns (uint32) {
+    function getLzEid(uint256 chainId) internal pure returns (uint32) {
         if (chainId == SEPOLIA_CHAIN_ID) return SEPOLIA_LZ_EID;
         if (chainId == ARBITRUM_SEPOLIA_CHAIN_ID) return ARBITRUM_SEPOLIA_LZ_EID;
         if (chainId == BASE_SEPOLIA_CHAIN_ID) return BASE_SEPOLIA_LZ_EID;
@@ -83,7 +83,7 @@ library Config {
      * @param chainId The chain ID
      * @return True if EVVM is available
      */
-    function hasEVVM(uint256 chainId) internal pure returns (bool) {
+    function hasEvvm(uint256 chainId) internal pure returns (bool) {
         return chainId == SEPOLIA_CHAIN_ID;
     }
 
@@ -92,7 +92,7 @@ library Config {
      * @param chainId The chain ID
      * @return EVVM address (or address(0) if not available)
      */
-    function getEVVM(uint256 chainId) internal pure returns (address) {
+    function getEvvm(uint256 chainId) internal pure returns (address) {
         if (chainId == SEPOLIA_CHAIN_ID) return SEPOLIA_EVVM;
         return address(0);
     }

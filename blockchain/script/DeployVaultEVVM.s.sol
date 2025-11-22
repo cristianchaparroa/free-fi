@@ -38,12 +38,12 @@ contract DeployVaultEVVM is Script {
         console.log("");
 
         // Verify we're on Sepolia (EVVM only available on Sepolia)
-        require(Config.hasEVVM(chainId), "EVVM not available on this chain");
+        require(Config.hasEvvm(chainId), "EVVM not available on this chain");
 
         vm.startBroadcast(deployerPrivateKey);
 
         // 1. Get or Deploy USDC
-        address usdcAddress = _getOrDeployUSDC(deployer);
+        address usdcAddress = getOrDeployUsdc(deployer);
         console.log("USDC Address:", usdcAddress);
 
         // 2. Get fee collector (defaults to deployer)
@@ -51,7 +51,7 @@ contract DeployVaultEVVM is Script {
         console.log("Fee Collector:", feeCollector);
 
         // 3. Get EVVM and NameService addresses
-        address evvmAddress = Config.getEVVM(chainId);
+        address evvmAddress = Config.getEvvm(chainId);
         address nameServiceAddress = Config.getNameService(chainId);
         console.log("EVVM Address:", evvmAddress);
         console.log("NameService Address:", nameServiceAddress);
@@ -126,7 +126,7 @@ contract DeployVaultEVVM is Script {
      * @param deployer Deployer address
      * @return USDC address
      */
-    function _getOrDeployUSDC(address deployer) internal returns (address) {
+    function getOrDeployUsdc(address deployer) internal returns (address) {
         // Check if we should use mock USDC
         bool useMock = vm.envOr("USE_MOCK_USDC", true);
 

@@ -49,23 +49,23 @@ contract DeployAll is Script {
         console.log("");
 
         // Verify we're on Sepolia
-        require(Config.hasEVVM(chainId), "Deploy on Sepolia for EVVM integration");
+        require(Config.hasEvvm(chainId), "Deploy on Sepolia for EVVM integration");
 
         vm.startBroadcast(deployerPrivateKey);
 
         // ========== STEP 1: USDC ==========
         console.log("Step 1: Deploy/Get USDC");
-        deployment.usdc = _getOrDeployUSDC(deployer);
+        deployment.usdc = getOrDeployUsdc(deployer);
         console.log("  USDC:", deployment.usdc);
         console.log("");
 
         // ========== STEP 2: Configuration ==========
         console.log("Step 2: Get Configuration");
-        deployment.evvm = Config.getEVVM(chainId);
+        deployment.evvm = Config.getEvvm(chainId);
         deployment.nameService = Config.getNameService(chainId);
         deployment.feeCollector = vm.envOr("FEE_COLLECTOR", deployer);
         deployment.executor = vm.envOr("EXECUTOR", deployer);
-        address lzEndpoint = Config.getLZEndpoint(chainId);
+        address lzEndpoint = Config.getLzEndpoint(chainId);
 
         console.log("  EVVM:", deployment.evvm);
         console.log("  NameService:", deployment.nameService);
@@ -160,7 +160,7 @@ contract DeployAll is Script {
             vm.toString(lzEndpoint),
             '",\n',
             '  "lzEid": ',
-            vm.toString(uint256(Config.getLZEid(chainId))),
+            vm.toString(uint256(Config.getLzEid(chainId))),
             "\n",
             "}"
         );
@@ -173,7 +173,7 @@ contract DeployAll is Script {
         return deployment;
     }
 
-    function _getOrDeployUSDC(address deployer) internal returns (address) {
+    function getOrDeployUsdc(address deployer) internal returns (address) {
         bool useMock = vm.envOr("USE_MOCK_USDC", true);
 
         if (useMock) {

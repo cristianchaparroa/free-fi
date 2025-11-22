@@ -47,16 +47,16 @@ contract DeployYieldFlowOFTEVVM is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // 1. Get or Deploy USDC
-        address usdcAddress = _getOrDeployUSDC(deployer);
+        address usdcAddress = getOrDeployUsdc(deployer);
         console.log("USDC Address:", usdcAddress);
 
         // 2. Get LayerZero endpoint
-        address lzEndpoint = Config.getLZEndpoint(chainId);
+        address lzEndpoint = Config.getLzEndpoint(chainId);
         console.log("LayerZero Endpoint:", lzEndpoint);
 
         // 3. Get Vault address (only on Sepolia)
         address vaultAddress = address(0);
-        if (Config.hasEVVM(chainId)) {
+        if (Config.hasEvvm(chainId)) {
             // On Sepolia (destination), need vault address
             vaultAddress = vm.envOr("VAULT_ADDRESS", address(0));
             if (vaultAddress == address(0)) {
@@ -70,20 +70,19 @@ contract DeployYieldFlowOFTEVVM is Script {
         }
 
         // 4. Get EVVM address (only on Sepolia)
-        address evvmAddress = Config.getEVVM(chainId);
+        address evvmAddress = Config.getEvvm(chainId);
         console.log("EVVM Address:", evvmAddress);
         console.log("");
 
         // 5. Deploy YieldFlowOFTEVVM
         console.log("Deploying YieldFlowOFTEVVM...");
-        YieldFlowOFTEVVM oft =
-            new YieldFlowOFTEVVM(usdcAddress, vaultAddress, lzEndpoint, evvmAddress, deployer);
+        YieldFlowOFTEVVM oft = new YieldFlowOFTEVVM(usdcAddress, vaultAddress, lzEndpoint, evvmAddress, deployer);
         console.log("YieldFlowOFTEVVM deployed at:", address(oft));
         console.log("");
 
         // 6. Verify deployment
         console.log("=== Deployment Summary ===");
-        console.log("Chain:", _getChainName(chainId));
+        console.log("Chain:", getChainName(chainId));
         console.log("YieldFlowOFTEVVM:", address(oft));
         console.log("USDC:", usdcAddress);
         console.log("Vault:", vaultAddress == address(0) ? "Not set" : vm.toString(vaultAddress));
@@ -93,7 +92,7 @@ contract DeployYieldFlowOFTEVVM is Script {
 
         // 7. Display next steps
         console.log("=== Next Steps ===");
-        if (Config.hasEVVM(chainId)) {
+        if (Config.hasEvvm(chainId)) {
             console.log("1. If vault not set, call: oft.updateVaultAddress(<vault>)");
             console.log("2. Set up LayerZero peers (setPeer) to connect with source chains");
             console.log("3. Enable auto-deposit: oft.setAutoDeposit(true)");
@@ -112,7 +111,7 @@ contract DeployYieldFlowOFTEVVM is Script {
                 "forge verify-contract ",
                 vm.toString(address(oft)),
                 " YieldFlowOFTEVVM --chain ",
-                _getChainName(chainId),
+                getChainName(chainId),
                 " --watch --constructor-args $(cast abi-encode 'constructor(address,address,address,address,address)' ",
                 vm.toString(usdcAddress),
                 " ",
@@ -129,7 +128,7 @@ contract DeployYieldFlowOFTEVVM is Script {
         console.log("");
 
         // 9. Save deployment info to file
-        string memory fileName = string.concat("deployments/oft-", _getChainName(chainId), ".json");
+        string memory fileName = string.concat("deployments/oft-", getChainName(chainId), ".json");
         string memory deploymentInfo = string.concat(
             "{\n",
             '  "chainId": ',
@@ -151,7 +150,7 @@ contract DeployYieldFlowOFTEVVM is Script {
             vm.toString(evvmAddress),
             '",\n',
             '  "lzEid": ',
-            vm.toString(uint256(Config.getLZEid(chainId))),
+            vm.toString(uint256(Config.getLzEid(chainId))),
             "\n",
             "}"
         );
@@ -167,7 +166,7 @@ contract DeployYieldFlowOFTEVVM is Script {
      * @param deployer Deployer address
      * @return USDC address
      */
-    function _getOrDeployUSDC(address deployer) internal returns (address) {
+    function getOrDeployUsdc(address deployer) internal returns (address) {
         bool useMock = vm.envOr("USE_MOCK_USDC", true);
 
         if (useMock) {
@@ -189,7 +188,7 @@ contract DeployYieldFlowOFTEVVM is Script {
      * @param chainId Chain ID
      * @return Chain name
      */
-    function _getChainName(uint256 chainId) internal pure returns (string memory) {
+    function getChainName(uint256 chainId) internal pure returns (string memory) {
         if (chainId == Config.SEPOLIA_CHAIN_ID) return "sepolia";
         if (chainId == Config.ARBITRUM_SEPOLIA_CHAIN_ID) return "arbitrum-sepolia";
         if (chainId == Config.BASE_SEPOLIA_CHAIN_ID) return "base-sepolia";
