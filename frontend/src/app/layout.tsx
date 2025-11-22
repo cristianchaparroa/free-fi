@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Web3Provider } from "@/components/providers/Web3Provider";
 import "./globals.css";
-import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FreeFi - Cross-Chain Yield Optimizer",
-  description: "Earn the best stablecoin rates across all chains. Automatically. Gasless.",
+  title: "FreeFi - Global Savings Protocol",
+  description: "Auto-optimizing cross-chain yield aggregator with gasless transactions on Saga",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Web3Provider>{children}</Web3Provider>
       </body>
     </html>
   );

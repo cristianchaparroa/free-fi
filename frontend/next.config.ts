@@ -2,9 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  turbopack: {
-    root: process.cwd(),
-  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,

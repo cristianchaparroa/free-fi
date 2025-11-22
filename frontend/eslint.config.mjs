@@ -1,7 +1,6 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
-import unusedImports from "eslint-plugin-unused-imports";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,15 +24,12 @@ const eslintConfig = [
     // Extend Next.js + TypeScript configs
     ...compat.extends("next/core-web-vitals", "next/typescript"),
 
-    // Custom rules and plugins
+    // Custom rules
     {
-        plugins: {
-            "unused-imports": unusedImports,
-        },
         rules: {
-            "unused-imports/no-unused-imports": "error",
+            "@typescript-eslint/no-explicit-any": "off",
+            "indent": "off",
             "key-spacing": ["error", { afterColon: true }],
-            "indent": ["error", 4],
         },
     },
 ];
