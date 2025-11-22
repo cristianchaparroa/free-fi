@@ -1,24 +1,70 @@
+/**
+ * FreeFi Main Application Page
+ *
+ * Root page component implementing the Dragonfly-inspired DeFi interface.
+ * Features animated crypto globe background, landing page for visitors,
+ * and comprehensive dashboard for connected users.
+ *
+ * Architecture:
+ * - Client-side rendered (Next.js App Router)
+ * - State management for wallet connection and user inputs
+ * - Conditional rendering based on connection state
+ * - Responsive design with mobile-first approach
+ */
+
 'use client';
 
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import React, { useState } from 'react';
+import { useAccount } from 'wagmi';
+import { CryptoGlobe } from '@/components/ui/CryptoGlobe';
+import { LandingView } from '@/components/landing/LandingView';
+import { DashboardView } from '@/components/dashboard/DashboardView';
+import { Theme } from '@/types';
 
 export default function Home() {
+  // Web3 wallet connection state
+  const { isConnected } = useAccount();
+
+  // Application state
+  const [amount, setAmount] = useState('1000');
+
+  // Dragonfly / Fluid DeFi color palette
+  const theme: Theme = {
+    bg: '#0F1419',
+    surface: '#141923',
+    brand: '#5B8FFF',    // Ethereum Blue
+    success: '#2DD4BF',  // Turquoise Yield/USDC
+    warning: '#F4B944',  // Gold Warning
+    text: '#FFFFFF',
+    textDim: 'rgba(255, 255, 255, 0.5)',
+    border: 'rgba(91, 143, 255, 0.3)',
+    grid: 'rgba(91, 143, 255, 0.05)'
+  };
+
+
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
-      {/* Header */}
-      <header className="flex items-center justify-between p-6">
-        <h1 className="text-2xl font-bold">FreeFi</h1>
-        <ConnectButton />
-      </header>
+    <div
+      className="min-h-screen w-full text-white font-mono selection:bg-[#5B8FFF] selection:text-black relative bg-[#0F1419] overflow-x-hidden"
+    >
+      {/* Animated Crypto Globe Background */}
+      <CryptoGlobe theme={theme} />
+
+      {/* Grid Pattern Overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0 opacity-20"
+        style={{
+          backgroundImage: `linear-gradient(${theme.grid} 1px, transparent 1px), linear-gradient(90deg, ${theme.grid} 1px, transparent 1px)`,
+          backgroundSize: '40px 40px'
+        }}
+      ></div>
 
       {/* Main Content */}
-      <main className="flex flex-1 items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold mb-4">Cross-Chain Yield Optimizer</h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Earn the best stablecoin rates across all chains. Automatically. Gasless.
-          </p>
-        </div>
+      <main className="relative z-10">
+        {isConnected ? (
+          <DashboardView amount={amount} onAmountChange={setAmount} />
+        ) : (
+          <LandingView />
+        )}
       </main>
     </div>
   );
