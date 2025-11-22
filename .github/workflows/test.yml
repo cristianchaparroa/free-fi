@@ -35,6 +35,7 @@ jobs:
           forge install OpenZeppelin/openzeppelin-contracts@v5.5.0 --no-git
           forge install OpenZeppelin/openzeppelin-contracts-upgradeable@v5.5.0 --no-git
           forge install transmissions11/solmate@89365b880c4f3c786bdd453d4b8e8fe410344a69 --no-git
+          forge install LayerZero-Labs/LayerZero-v2@ab9b083410b9359285a5756807e1b6145d4711a7 --no-git
 
       - name: Run Forge fmt
         run: forge fmt --check
