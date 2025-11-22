@@ -41,7 +41,7 @@ contract VaultEVVM is Ownable, ReentrancyGuard {
     IERC20 public immutable USDC;
 
     /// @notice MATE Metaprotocol (EVVM) contract
-    IEVVM public immutable evvm;
+    IEVVM public immutable EVVM;
 
     /// @notice MATE NameService contract (optional)
     IMATENameService public nameService;
@@ -104,22 +104,17 @@ contract VaultEVVM is Ownable, ReentrancyGuard {
      * @dev Constructor
      * @param _usdc USDC token address
      * @param _feeCollector Fee collector address
-     * @param _evvm MATE Metaprotocol (EVVM) address
+     * @param evvmAddress MATE Metaprotocol (EVVM) address
      * @param _nameService MATE NameService address (optional, can be address(0))
      */
-    constructor(
-        address _usdc,
-        address _feeCollector,
-        address _evvm,
-        address _nameService
-    ) Ownable(msg.sender) {
-        if (_usdc == address(0) || _feeCollector == address(0) || _evvm == address(0)) {
+    constructor(address _usdc, address _feeCollector, address evvmAddress, address _nameService) Ownable(msg.sender) {
+        if (_usdc == address(0) || _feeCollector == address(0) || evvmAddress == address(0)) {
             revert ZeroAddress();
         }
 
         USDC = IERC20(_usdc);
         feeCollector = _feeCollector;
-        evvm = IEVVM(_evvm);
+        EVVM = IEVVM(evvmAddress);
         nameService = IMATENameService(_nameService);
         gaslessEnabled = true;
     }
@@ -187,25 +182,27 @@ contract VaultEVVM is Ownable, ReentrancyGuard {
      * @param signature User's signature authorizing the deposit
      * @dev Executor calls this on behalf of user (pays gas via EVVM)
      */
-    function depositGasless(
-        address user,
-        uint256 amount,
-        uint256 nonce,
-        bytes calldata signature
-    ) external nonReentrant returns (uint256 shares) {
+    function depositGasless(address user, uint256 amount, uint256 nonce, bytes calldata signature)
+        external
+        nonReentrant
+        returns (uint256 shares)
+    {
         if (!gaslessEnabled) revert GaslessDisabled();
         if (amount < MIN_DEPOSIT) revert AmountTooSmall();
         if (nonce != userNonces[user]) revert InvalidNonce();
 
         // Verify signature
-        bytes32 messageHash = keccak256(abi.encodePacked(
-            "VaultEVVM.depositGasless",
-            user,
-            amount,
-            nonce,
-            block.chainid,
-            address(this)
-        ));
+        bytes32 messageHash;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, "VaultEVVM.depositGasless")
+            mstore(add(ptr, 0x18), shl(96, user))
+            mstore(add(ptr, 0x2c), amount)
+            mstore(add(ptr, 0x4c), nonce)
+            mstore(add(ptr, 0x6c), chainid())
+            mstore(add(ptr, 0x8c), address())
+            messageHash := keccak256(ptr, 0xac)
+        }
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
         address signer = ethSignedMessageHash.recover(signature);
 
@@ -237,26 +234,28 @@ contract VaultEVVM is Ownable, ReentrancyGuard {
      * @param signature User's signature authorizing the withdrawal
      * @dev Executor calls this on behalf of user (pays gas via EVVM)
      */
-    function withdrawGasless(
-        address user,
-        uint256 shares,
-        uint256 nonce,
-        bytes calldata signature
-    ) external nonReentrant returns (uint256 amount) {
+    function withdrawGasless(address user, uint256 shares, uint256 nonce, bytes calldata signature)
+        external
+        nonReentrant
+        returns (uint256 amount)
+    {
         if (!gaslessEnabled) revert GaslessDisabled();
         if (shares == 0) revert AmountTooSmall();
         if (userShares[user] < shares) revert InsufficientShares();
         if (nonce != userNonces[user]) revert InvalidNonce();
 
         // Verify signature
-        bytes32 messageHash = keccak256(abi.encodePacked(
-            "VaultEVVM.withdrawGasless",
-            user,
-            shares,
-            nonce,
-            block.chainid,
-            address(this)
-        ));
+        bytes32 messageHash;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, "VaultEVVM.withdrawGasless")
+            mstore(add(ptr, 0x19), shl(96, user))
+            mstore(add(ptr, 0x2d), shares)
+            mstore(add(ptr, 0x4d), nonce)
+            mstore(add(ptr, 0x6d), chainid())
+            mstore(add(ptr, 0x8d), address())
+            messageHash := keccak256(ptr, 0xad)
+        }
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
         address signer = ethSignedMessageHash.recover(signature);
 

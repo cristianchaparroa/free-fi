@@ -57,7 +57,7 @@ contract YieldFlowOFTEVVM is OFT {
     IERC20 public immutable USDC;
 
     /// @notice MATE Metaprotocol (EVVM) contract on Sepolia
-    IEVVM public evvm;
+    IEVVM public immutable EVVM;
 
     /// @notice Enable/disable auto-deposit to vault on receive
     bool public autoDepositEnabled;
@@ -74,7 +74,6 @@ contract YieldFlowOFTEVVM is OFT {
 
     event CrossChainDeposit(address indexed user, uint32 indexed dstEid, uint256 amount);
     event VaultAddressUpdated(address indexed oldVault, address indexed newVault);
-    event EVVMAddressUpdated(address indexed oldEVVM, address indexed newEVVM);
     event AutoDepositToVault(address indexed user, uint256 amount, uint256 shares);
     event AutoDepositToggled(bool enabled);
     event GaslessModeToggled(bool enabled);
@@ -84,23 +83,20 @@ contract YieldFlowOFTEVVM is OFT {
      * @param _usdc The USDC token address on this chain
      * @param _vault The VaultEVVM address on Sepolia (destination chain)
      * @param _lzEndpoint The LayerZero endpoint address
-     * @param _evvm The MATE Metaprotocol (EVVM) address on Sepolia
+     * @param evvmAddress The MATE Metaprotocol (EVVM) address on Sepolia
      * @param _owner The owner of the contract
      */
-    constructor(
-        address _usdc,
-        address _vault,
-        address _lzEndpoint,
-        address _evvm,
-        address _owner
-    ) OFT("YieldFlow Receipt EVVM", "yfUSDC", _lzEndpoint, _owner) Ownable(_owner) {
+    constructor(address _usdc, address _vault, address _lzEndpoint, address evvmAddress, address _owner)
+        OFT("YieldFlow Receipt EVVM", "yfUSDC", _lzEndpoint, _owner)
+        Ownable(_owner)
+    {
         if (_usdc == address(0)) revert ZeroAddress();
         if (_lzEndpoint == address(0)) revert ZeroAddress();
         if (_owner == address(0)) revert ZeroAddress();
 
         USDC = IERC20(_usdc);
         vaultAddress = _vault;
-        evvm = IEVVM(_evvm);
+        EVVM = IEVVM(evvmAddress);
         autoDepositEnabled = true;
         gaslessModeEnabled = false; // Enable after executor setup
     }
@@ -152,12 +148,11 @@ contract YieldFlowOFTEVVM is OFT {
      * @return oftReceipt The OFT receipt
      * @dev Standard withdraw (user pays gas)
      */
-    function withdrawAndBridge(
-        uint256 shares,
-        uint32 dstEid,
-        address recipient,
-        bytes calldata extraOptions
-    ) external payable returns (MessagingReceipt memory msgReceipt, OFTReceipt memory oftReceipt) {
+    function withdrawAndBridge(uint256 shares, uint32 dstEid, address recipient, bytes calldata extraOptions)
+        external
+        payable
+        returns (MessagingReceipt memory msgReceipt, OFTReceipt memory oftReceipt)
+    {
         if (vaultAddress == address(0)) revert ZeroAddress();
         if (shares == 0) revert InvalidAmount();
         if (recipient == address(0)) revert ZeroAddress();
@@ -207,7 +202,7 @@ contract YieldFlowOFTEVVM is OFT {
         bytes calldata extraOptions
     ) external payable returns (MessagingReceipt memory msgReceipt, OFTReceipt memory oftReceipt) {
         if (!gaslessModeEnabled) revert GaslessModeDisabled();
-        if (address(evvm) == address(0)) revert EVVMNotConfigured();
+        if (address(EVVM) == address(0)) revert EVVMNotConfigured();
         if (vaultAddress == address(0)) revert ZeroAddress();
         if (shares == 0) revert InvalidAmount();
         if (recipient == address(0)) revert ZeroAddress();
@@ -346,17 +341,6 @@ contract YieldFlowOFTEVVM is OFT {
     }
 
     /**
-     * @notice Update the EVVM address
-     * @param newEVVM New MATE Metaprotocol address
-     */
-    function updateEVVMAddress(address newEVVM) external onlyOwner {
-        if (newEVVM == address(0)) revert ZeroAddress();
-        address oldEVVM = address(evvm);
-        evvm = IEVVM(newEVVM);
-        emit EVVMAddressUpdated(oldEVVM, newEVVM);
-    }
-
-    /**
      * @notice Toggle auto-deposit to vault on receive
      * @param enabled True to enable, false to disable
      */
@@ -414,7 +398,7 @@ contract YieldFlowOFTEVVM is OFT {
      * @notice Get EVVM contract address
      * @return EVVM address
      */
-    function getEVVMAddress() external view returns (address) {
-        return address(evvm);
+    function getEvvmAddress() external view returns (address) {
+        return address(EVVM);
     }
 }
