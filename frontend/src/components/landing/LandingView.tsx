@@ -22,15 +22,12 @@ import {
   X,
   CheckCircle2
 } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { BracketBox } from '@/components/ui/BracketBox';
 import { Badge } from '@/components/ui/Badge';
 import { RateData, FeatureCard } from '@/types';
 
-interface LandingViewProps {
-  onConnect: () => void;
-}
-
-export const LandingView: React.FC<LandingViewProps> = ({ onConnect }) => {
+export const LandingView: React.FC = () => {
   const features: FeatureCard[] = [
     {
       icon: Zap,
@@ -67,12 +64,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onConnect }) => {
           <div className="w-2 h-2 bg-[#5B8FFF]"></div>
           Free<span className="text-[#5B8FFF]">Fi</span>
         </div>
-        <button
-          onClick={onConnect}
-          className="text-sm text-[#5B8FFF] hover:text-white border border-[#5B8FFF] px-4 py-1 hover:bg-[#5B8FFF] hover:bg-opacity-10 transition-all"
-        >
-          [ Connect Wallet ]
-        </button>
+        <ConnectButton />
       </div>
 
       {/* Hero Section */}
@@ -95,12 +87,16 @@ export const LandingView: React.FC<LandingViewProps> = ({ onConnect }) => {
         </p>
 
         <div className="flex justify-center">
-          <button
-            onClick={onConnect}
-            className="bg-[#5B8FFF] text-[#0F1419] font-bold font-mono px-8 py-4 hover:bg-white transition-all uppercase tracking-widest border border-[#5B8FFF] shadow-[0_0_20px_rgba(91,143,255,0.3)] flex items-center gap-2"
-          >
-            <Zap size={16} /> Initialize App
-          </button>
+          <ConnectButton.Custom>
+            {({ openConnectModal }) => (
+              <button
+                onClick={openConnectModal}
+                className="bg-[#5B8FFF] text-[#0F1419] font-bold font-mono px-8 py-4 hover:bg-white transition-all uppercase tracking-widest border border-[#5B8FFF] shadow-[0_0_20px_rgba(91,143,255,0.3)] flex items-center gap-2"
+              >
+                <Zap size={16} /> Initialize App
+              </button>
+            )}
+          </ConnectButton.Custom>
         </div>
       </div>
 

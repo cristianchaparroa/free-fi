@@ -38,6 +38,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
+          locale="en-US"
           theme={darkTheme({
             accentColor: '#5B8FFF', // FreeFi brand blue
             accentColorForeground: '#0F1419',

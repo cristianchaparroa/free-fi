@@ -16,6 +16,7 @@
 
 import React from 'react';
 import { Globe, Activity, Zap } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { BracketBox } from '@/components/ui/BracketBox';
 import { YieldChart } from '@/components/dashboard/YieldChart';
 import { EventLog } from '@/components/dashboard/EventLog';
@@ -46,7 +47,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex items-center gap-2 text-gray-400 border border-white/10 px-3 py-1 bg-black/40">
             <Globe size={14} /> Ethereum Sepolia
           </div>
-          <div className="text-[#5B8FFF] font-bold">[ 0x1a2b...3c4d ]</div>
+          <ConnectButton />
         </div>
       </div>
 
