@@ -57,9 +57,7 @@ contract Vault is Ownable, ReentrancyGuard {
         if (amount < MIN_DEPOSIT) revert AmountTooSmall();
 
         // Calculate shares (first depositor gets 1:1 ratio)
-        shares = totalShares == 0
-            ? amount
-            : (amount * totalShares) / totalDeposits;
+        shares = totalShares == 0 ? amount : (amount * totalShares) / totalDeposits;
 
         // Update state
         userShares[msg.sender] += shares;
