@@ -2,17 +2,30 @@
 pragma solidity ^0.8.20;
 
 import {OFT} from "@layerzero/oft/OFT.sol";
+import {Origin} from "@layerzero/oapp/OApp.sol";
+import {OFTMsgCodec} from "@layerzero/oft/libs/OFTMsgCodec.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
+ * @notice Interface for the Vault contract
+ */
+interface IVault {
+    function deposit(uint256 amount) external returns (uint256 shares);
+    function userShares(address user) external view returns (uint256);
+}
+
+/**
  * @title YieldFlowOFT
- * @notice OFT wrapper for cross-chain USDC deposits
+ * @notice OFT wrapper for cross-chain USDC deposits with auto-deposit to Vault
  * @dev Enables deposits from any LayerZero-supported chain to the vault
+ * @dev Extends OFT with custom _lzReceive logic to automatically deposit into Vault on Saga
  */
 contract YieldFlowOFT is OFT {
     using SafeERC20 for IERC20;
+    using OFTMsgCodec for bytes;
+    using OFTMsgCodec for bytes32;
 
     /// @notice The vault contract address on the destination chain (Saga)
     address public vaultAddress;
@@ -23,9 +36,11 @@ contract YieldFlowOFT is OFT {
     error ZeroAddress();
     error InsufficientFee();
     error InvalidAmount();
+    error VaultDepositFailed();
 
     event CrossChainDeposit(address indexed user, uint32 indexed dstEid, uint256 amount);
     event VaultAddressUpdated(address indexed oldVault, address indexed newVault);
+    event AutoDepositToVault(address indexed user, uint256 amount, uint256 shares);
 
     /**
      * @dev Constructor for YieldFlowOFT
@@ -108,5 +123,66 @@ contract YieldFlowOFT is OFT {
      */
     function getUsdcBalance() external view returns (uint256) {
         return USDC.balanceOf(address(this));
+    }
+
+    /**
+     * @notice Override _lzReceive to add custom logic for auto-depositing to Vault
+     * @dev This function is called when OFT tokens arrive on this chain via LayerZero
+     * @dev Extends base OFT functionality by automatically depositing received tokens into the Vault
+     * @param _origin The origin information (source chain and sender)
+     * @param _guid The unique identifier for the received LayerZero message
+     * @param _message The encoded message containing recipient and amount
+     * @param _executor The address of the executor
+     * @param _extraData Additional data
+     */
+    function _lzReceive(
+        Origin calldata _origin,
+        bytes32 _guid,
+        bytes calldata _message,
+        address _executor,
+        bytes calldata _extraData
+    ) internal virtual override {
+        // Call parent implementation to handle standard OFT receive logic
+        // This will mint OFT tokens to the recipient
+        super._lzReceive(_origin, _guid, _message, _executor, _extraData);
+
+        // Early return if vault is not configured
+        if (vaultAddress == address(0)) return;
+
+        // Decode the recipient address from the message
+        address recipient = _message.sendTo().bytes32ToAddress();
+
+        // Get the amount that was credited (in local decimals)
+        uint256 amountLd = _toLD(_message.amountSD());
+
+        // Get the OFT token balance of the recipient
+        uint256 recipientBalance = balanceOf(recipient);
+
+        // Early return if recipient has no balance
+        if (recipientBalance == 0) return;
+
+        // Early return if balance is insufficient
+        if (recipientBalance < amountLd) return;
+
+        // Burn the OFT tokens from recipient
+        _burn(recipient, amountLd);
+
+        // Approve vault to spend USDC
+        USDC.forceApprove(vaultAddress, amountLd);
+
+        // Deposit USDC into the vault on behalf of the recipient
+        try IVault(vaultAddress).deposit(amountLd) returns (uint256 shares) {
+            // Vault shares are now owned by recipient in the Vault contract
+            emit AutoDepositToVault(recipient, amountLd, shares);
+        } catch {
+            // If vault deposit fails, re-mint the OFT tokens back to recipient
+            _mint(recipient, amountLd);
+            // Reset approval
+            USDC.forceApprove(vaultAddress, 0);
+            revert VaultDepositFailed();
+        }
+
+        // Reset approval to 0 for security
+        USDC.forceApprove(vaultAddress, 0);
     }
 }
