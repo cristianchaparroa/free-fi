@@ -53,12 +53,12 @@ const TOKEN_ADDRESSES: Record<string, Record<number, string>> = {
   },
   // POL (Polygon native token) - previously MATIC
   POL: {
-    137: '0x0000000000000000000000000000000000001010', // Polygon native
+    137: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // Wrapped POL (WPOL) - required for DeFi protocols
     1: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // Ethereum (POL token)
   },
   // MATIC (legacy mapping, same as POL)
   MATIC: {
-    137: '0x0000000000000000000000000000000000001010', // Polygon native
+    137: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // Wrapped MATIC (same as WPOL)
     1: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // Ethereum
   },
 };
@@ -501,7 +501,37 @@ class NexusManager {
         }
       }
 
-      // Case 2: Same token - use bridgeAndExecute for atomic operation
+      // Case 2: Same token
+      // Case 2a: Same chain - just deposit directly (no bridge needed)
+      if (currentChainId === targetChainId) {
+        onProgress?.(`Depositing ${amount} ${targetToken} to ${opportunity.protocol} on ${opportunity.chain}...`);
+
+        try {
+          const depositResult = await protocolDepositManager.depositToProtocol(
+            opportunity.protocol,
+            walletClient,
+            targetToken,
+            amount,
+            targetChainId,
+            userAddress,
+            (msg) => onProgress?.(msg)
+          );
+
+          return {
+            success: true,
+            depositResult,
+            explorerUrl: depositResult.explorerUrl,
+            message: `Successfully deployed to ${opportunity.protocol}! Now earning ${opportunity.apy.toFixed(2)}% APY`,
+            protocol: opportunity.protocol,
+            apy: opportunity.apy,
+          };
+        } catch (depositError: any) {
+          console.error('Direct deposit failed:', depositError);
+          throw depositError;
+        }
+      }
+
+      // Case 2b: Different chain - use bridgeAndExecute for atomic operation
       onProgress?.(`Bridging and deploying ${amount} ${targetToken} to ${opportunity.protocol} on ${opportunity.chain}...`);
 
       // Get protocol deposit data

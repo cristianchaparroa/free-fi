@@ -8,7 +8,7 @@
  * - Curve: Liquidity provision
  */
 
-import { createPublicClient, createWalletClient, custom, parseUnits, http } from 'viem';
+import { createPublicClient, createWalletClient, custom, parseUnits, formatUnits, http } from 'viem';
 import { mainnet, polygon, arbitrum, optimism, base } from 'viem/chains';
 
 /**
@@ -93,7 +93,7 @@ const ABIS = {
     },
   ] as const,
 
-  // ERC20 ABI for approvals
+  // ERC20 ABI for approvals and balance checks
   erc20: [
     {
       name: 'approve',
@@ -112,6 +112,15 @@ const ABIS = {
       inputs: [
         { name: 'owner', type: 'address' },
         { name: 'spender', type: 'address' },
+      ],
+      outputs: [{ name: '', type: 'uint256' }],
+    },
+    {
+      name: 'balanceOf',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [
+        { name: 'account', type: 'address' },
       ],
       outputs: [{ name: '', type: 'uint256' }],
     },
@@ -141,8 +150,12 @@ const TOKEN_ADDRESSES: Record<string, Record<number, string>> = {
     8453: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
   },
   POL: {
-    137: '0x0000000000000000000000000000000000001010', // Polygon native
+    137: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // Wrapped POL (WPOL) on Polygon - required for Aave
     1: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // Ethereum (POL token)
+  },
+  MATIC: {
+    137: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // Wrapped MATIC (same as WPOL)
+    1: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', // Ethereum
   },
 };
 
@@ -345,9 +358,47 @@ export class ProtocolDepositManager {
       const decimals = ['USDC', 'USDT'].includes(token) ? 6 : 18;
       const amountBigInt = parseUnits(amount, decimals);
 
-      // Check if we need approval (skip for native tokens: ETH, POL)
-      const isNativeToken = tokenAddress === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' ||
-                            tokenAddress === '0x0000000000000000000000000000000000001010';
+      // Check if we need approval (skip for native ETH only)
+      const isNativeToken = tokenAddress === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+
+      // Special handling for POL/MATIC - wrap native to WPOL if needed
+      if ((token === 'POL' || token === 'MATIC') && chainId === 137) {
+        onProgress?.('Checking WPOL balance...');
+
+        // Check WPOL balance
+        const wpolBalance = await publicClient.readContract({
+          address: tokenAddress as `0x${string}`,
+          abi: ABIS.erc20,
+          functionName: 'balanceOf',
+          args: [userAddress as `0x${string}`],
+        });
+
+        // If insufficient WPOL, wrap native POL first
+        if (wpolBalance < amountBigInt) {
+          const wrapAmount = amountBigInt - wpolBalance;
+          onProgress?.(`Wrapping ${formatUnits(wrapAmount, 18)} POL to WPOL...`);
+
+          // WPOL deposit function (same as WETH)
+          const wrapHash = await chainWalletClient.writeContract({
+            address: tokenAddress as `0x${string}`,
+            abi: [{
+              name: 'deposit',
+              type: 'function',
+              stateMutability: 'payable',
+              inputs: [],
+              outputs: [],
+            }],
+            functionName: 'deposit',
+            value: wrapAmount,
+            account: userAddress as `0x${string}`,
+            chain,
+          });
+
+          onProgress?.('Waiting for wrap confirmation...');
+          await publicClient.waitForTransactionReceipt({ hash: wrapHash });
+          onProgress?.('✅ POL wrapped to WPOL successfully!');
+        }
+      }
 
       if (!isNativeToken) {
         onProgress?.('Checking token approval...');
