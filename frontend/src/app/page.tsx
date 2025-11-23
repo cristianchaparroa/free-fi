@@ -14,7 +14,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAccount } from 'wagmi';
 import { CryptoGlobe } from '@/components/ui/CryptoGlobe';
 import { LandingView } from '@/components/landing/LandingView';
@@ -24,9 +24,6 @@ import { Theme } from '@/types';
 export default function Home() {
   // Web3 wallet connection state
   const { isConnected } = useAccount();
-
-  // Application state
-  const [amount, setAmount] = useState('1000');
 
   // Dragonfly / Fluid DeFi color palette
   const theme: Theme = {
@@ -61,7 +58,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="relative z-10">
         {isConnected ? (
-          <DashboardView amount={amount} onAmountChange={setAmount} />
+          <DashboardView />
         ) : (
           <LandingView />
         )}
