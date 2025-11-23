@@ -14,11 +14,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/wagmi';
+import { mainnet, sepolia } from 'wagmi/chains';
 
 // Import RainbowKit styles
 import '@rainbow-me/rainbowkit/styles.css';
 
 const queryClient = new QueryClient();
+
+// Determine initial chain based on network mode
+const isTestnet = process.env.NEXT_PUBLIC_NETWORK_MODE === 'testnet';
+const initialChain = isTestnet ? sepolia : mainnet;
 
 interface Web3ProviderProps {
   children: React.ReactNode;
@@ -39,6 +44,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           locale="en-US"
+          initialChain={initialChain}
           theme={darkTheme({
             accentColor: '#5B8FFF', // FreeFi brand blue
             accentColorForeground: '#0F1419',

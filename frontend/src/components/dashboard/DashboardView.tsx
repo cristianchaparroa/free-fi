@@ -17,11 +17,14 @@
 import React from 'react';
 import { Globe, Activity } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount, useChainId } from 'wagmi';
 import { BracketBox } from '@/components/ui/BracketBox';
 import { YieldChart } from '@/components/dashboard/YieldChart';
 import { EventLog } from '@/components/dashboard/EventLog';
 import { DepositPanel } from '@/components/dashboard/DepositPanel';
 import { WithdrawPanel } from '@/components/dashboard/WithdrawPanel';
+import { YieldOpportunities } from '@/components/dashboard/YieldOpportunities';
+import { UnifiedBalance } from '@/components/dashboard/UnifiedBalance';
 
 interface DashboardViewProps {
   amount: string;
@@ -32,6 +35,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   amount,
   onAmountChange
 }) => {
+  const chainId = useChainId();
+  const { chain } = useAccount();
+
+  // Map chain IDs to display names
+  const getChainName = () => {
+    if (chain) return chain.name;
+
+    // Fallback based on chainId
+    const chainNames: Record<number, string> = {
+      1: 'Ethereum',
+      11155111: 'Sepolia',
+      42161: 'Arbitrum',
+      421614: 'Arbitrum Sepolia',
+      10: 'Optimism',
+      11155420: 'Optimism Sepolia',
+      8453: 'Base',
+      84532: 'Base Sepolia',
+      137: 'Polygon',
+      80002: 'Polygon Amoy',
+    };
+    return chainNames[chainId] || 'Unknown Network';
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 relative z-10">
       {/* Header */}
@@ -45,7 +71,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
         <div className="flex items-center gap-4 text-sm mt-4 md:mt-0">
           <div className="flex items-center gap-2 text-gray-400 border border-white/10 px-3 py-1 bg-black/40">
-            <Globe size={14} /> Ethereum Sepolia
+            <Globe size={14} /> {getChainName()}
           </div>
           <ConnectButton />
         </div>
@@ -53,61 +79,67 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       <div className="grid grid-cols-1 gap-8">
         {/* Portfolio Status */}
-        <BracketBox title="PORTFOLIO STATUS">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <div>
-              <div className="text-5xl font-mono font-bold text-white mb-2 tracking-tighter">
-                $5,247.89{' '}
-                <span className="text-lg text-gray-500 font-normal">USDC</span>
-              </div>
-              <div className="flex items-center gap-2 text-[#2DD4BF] font-mono bg-[#2DD4BF]/10 px-3 py-1 inline-block border border-[#2DD4BF]/20">
-                <Activity size={14} />
-                +$47.89 earned (0.92%)
-              </div>
-            </div>
-            <div className="text-right font-mono space-y-1 bg-black/40 p-4 border border-white/5">
-              <div className="text-gray-400 text-sm uppercase tracking-wider mb-1">
-                Active Strategy
-              </div>
-              <div className="text-white text-lg mb-1">Compound Arbitrum</div>
-              <div className="text-[#2DD4BF] font-bold text-xl">12.3% APY 🔥</div>
-            </div>
-          </div>
-        </BracketBox>
+        {/*<BracketBox title="PORTFOLIO STATUS">*/}
+        {/*  <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">*/}
+        {/*    <div>*/}
+        {/*      <div className="text-5xl font-mono font-bold text-white mb-2 tracking-tighter">*/}
+        {/*        $5,247.89{' '}*/}
+        {/*        <span className="text-lg text-gray-500 font-normal">USDC</span>*/}
+        {/*      </div>*/}
+        {/*      <div className="flex items-center gap-2 text-[#2DD4BF] font-mono bg-[#2DD4BF]/10 px-3 py-1 inline-block border border-[#2DD4BF]/20">*/}
+        {/*        <Activity size={14} />*/}
+        {/*        +$47.89 earned (0.92%)*/}
+        {/*      </div>*/}
+        {/*    </div>*/}
+        {/*    <div className="text-right font-mono space-y-1 bg-black/40 p-4 border border-white/5">*/}
+        {/*      <div className="text-gray-400 text-sm uppercase tracking-wider mb-1">*/}
+        {/*        Active Strategy*/}
+        {/*      </div>*/}
+        {/*      <div className="text-white text-lg mb-1">Compound Arbitrum</div>*/}
+        {/*      <div className="text-[#2DD4BF] font-bold text-xl">12.3% APY 🔥</div>*/}
+        {/*    </div>*/}
+        {/*  </div>*/}
+        {/*</BracketBox>*/}
 
         {/* Deposit & Withdraw Operations */}
         <div className="grid md:grid-cols-2 gap-8">
-          <BracketBox title="DEPOSIT OPERATIONS" className="border-[#5B8FFF]/50">
-            <DepositPanel amount={amount} onAmountChange={onAmountChange} />
-          </BracketBox>
+          {/*<BracketBox title="DEPOSIT OPERATIONS" className="border-[#5B8FFF]/50">*/}
+          {/*  <DepositPanel amount={amount} onAmountChange={onAmountChange} />*/}
+          {/*</BracketBox>*/}
 
-          <BracketBox title="WITHDRAW OPERATIONS">
-            <WithdrawPanel />
-          </BracketBox>
+          {/*<BracketBox title="WITHDRAW OPERATIONS">*/}
+          {/*  <WithdrawPanel />*/}
+          {/*</BracketBox>*/}
+        </div>
+
+        {/* Unified Balance & Yield Opportunities */}
+        <div className="grid md:grid-cols-2 gap-8">
+          <UnifiedBalance />
+          <YieldOpportunities />
         </div>
 
         {/* Performance Metrics & Event Log */}
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <BracketBox title="YIELD PERFORMANCE METRICS">
-              <YieldChart />
-              <div className="mt-10 text-xs font-mono text-gray-400 flex items-center gap-2 bg-[#141923] p-2 inline-block border border-white/5">
-                <span className="text-[#F4B944]">📍</span> Last rebalanced:{' '}
-                <span className="text-white">2h ago</span> (Strategy Shift)
-              </div>
-            </BracketBox>
-          </div>
+          {/*<div className="md:col-span-2">*/}
+          {/*  /!*<BracketBox title="YIELD PERFORMANCE METRICS">*!/*/}
+          {/*  /!*  <YieldChart />*!/*/}
+          {/*  /!*  <div className="mt-10 text-xs font-mono text-gray-400 flex items-center gap-2 bg-[#141923] p-2 inline-block border border-white/5">*!/*/}
+          {/*  /!*    <span className="text-[#F4B944]">📍</span> Last rebalanced:{' '}*!/*/}
+          {/*  /!*    <span className="text-white">2h ago</span> (Strategy Shift)*!/*/}
+          {/*  /!*  </div>*!/*/}
+          {/*  /!*</BracketBox>*!/*/}
+          {/*</div>*/}
 
-          <div className="md:col-span-1">
-            <BracketBox title="EVENT LOG">
-              <EventLog />
-              <div className="pt-4 border-t border-white/5 mt-2">
-                <span className="text-[#5B8FFF] text-xs cursor-pointer hover:text-white transition-colors">
-                  [ View Full Log ]
-                </span>
-              </div>
-            </BracketBox>
-          </div>
+          {/*<div className="md:col-span-1">*/}
+          {/*  <BracketBox title="EVENT LOG">*/}
+          {/*    <EventLog />*/}
+          {/*    <div className="pt-4 border-t border-white/5 mt-2">*/}
+          {/*      <span className="text-[#5B8FFF] text-xs cursor-pointer hover:text-white transition-colors">*/}
+          {/*        [ View Full Log ]*/}
+          {/*      </span>*/}
+          {/*    </div>*/}
+          {/*  </BracketBox>*/}
+          {/*</div>*/}
         </div>
       </div>
 
