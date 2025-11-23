@@ -17,11 +17,15 @@ import React from 'react';
 interface DepositPanelProps {
   amount: string;
   onAmountChange: (value: string) => void;
+  onDeposit: () => void;
+  isLoading?: boolean;
 }
 
 export const DepositPanel: React.FC<DepositPanelProps> = ({
   amount,
-  onAmountChange
+  onAmountChange,
+  onDeposit,
+  isLoading = false
 }) => {
   return (
     <div className="space-y-6 font-mono">
@@ -70,8 +74,16 @@ export const DepositPanel: React.FC<DepositPanelProps> = ({
       </div>
 
       {/* Submit Button */}
-      <button className="w-full py-4 border border-[#5B8FFF] bg-[#5B8FFF] text-[#0F1419] font-bold uppercase tracking-widest hover:bg-white hover:border-white transition-all">
-        [ Initiate Deposit ]
+      <button
+        onClick={onDeposit}
+        disabled={isLoading || !amount || parseFloat(amount) < 1}
+        className={`w-full py-4 border border-[#5B8FFF] bg-[#5B8FFF] text-[#0F1419] font-bold uppercase tracking-widest transition-all ${
+          isLoading || !amount || parseFloat(amount) < 1
+            ? 'opacity-50 cursor-not-allowed'
+            : 'hover:bg-white hover:border-white'
+        }`}
+      >
+        {isLoading ? '[ Processing... ]' : '[ Initiate Deposit ]'}
       </button>
     </div>
   );

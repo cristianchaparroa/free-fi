@@ -6,9 +6,9 @@ export const CONTRACTS = {
   // Sepolia (Destination chain with EVVM)
   sepolia: {
     chainId: 11155111,
-    vault: '0x8485A3D899Ac99798E3299D888665F1EBC06E6Ee',
-    oft: '0xf5f65e80625b97155fCd487bDfeDCdB4aEaDaB8c',
-    usdc: '0xFE12B8bb6E386436FE7E0B81681627a43f62Ea6F',
+    vault: '0x4dcBa47fE89A8AEfC1Af3eCD37a468aB9527a843',
+    oft: '0xf0b4B6F06F9581A6E726C0DcdFF269c34558E6Fd',
+    usdc: '0x607A8217770b32c9FE2329DC3fc8bc5A491a5DeE',
     evvm: '0x9902984d86059234c3B6e11D5eAEC55f9627dD0f',
     nameService: '0x8038e87dc67D87b31d890FD01E855a8517ebfD24',
     lzEndpoint: '0x6EDCE65403992e310A62460808c4b910D972f10f',
@@ -18,8 +18,8 @@ export const CONTRACTS = {
   // Arbitrum Sepolia (Source chain)
   arbitrumSepolia: {
     chainId: 421614,
-    oft: '0xf5f65e80625b97155fCd487bDfeDCdB4aEaDaB8c',
-    usdc: '0xFE12B8bb6E386436FE7E0B81681627a43f62Ea6F',
+    oft: '0xf0b4B6F06F9581A6E726C0DcdFF269c34558E6Fd',
+    usdc: '0x607A8217770b32c9FE2329DC3fc8bc5A491a5DeE',
     lzEndpoint: '0x6EDCE65403992e310A62460808c4b910D972f10f',
     lzEid: 40231,
   },

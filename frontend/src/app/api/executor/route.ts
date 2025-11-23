@@ -26,7 +26,7 @@ const EXECUTOR_PRIVATE_KEY = process.env.EXECUTOR_PRIVATE_KEY;
 const RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
 
 // Contract addresses (updated from deployment)
-const VAULT_ADDRESS = '0x8485A3D899Ac99798E3299D888665F1EBC06E6Ee' as `0x${string}`;
+const VAULT_ADDRESS = '0x4dcBa47fE89A8AEfC1Af3eCD37a468aB9527a843' as `0x${string}`;
 const EVVM_ADDRESS = '0x9902984d86059234c3B6e11D5eAEC55f9627dD0f' as `0x${string}`;
 
 // EVVM ABI (minimal - just what we need)

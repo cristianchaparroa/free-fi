@@ -14,14 +14,16 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Globe, Activity } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
 import { BracketBox } from '@/components/ui/BracketBox';
 import { YieldChart } from '@/components/dashboard/YieldChart';
 import { EventLog } from '@/components/dashboard/EventLog';
 import { DepositPanel } from '@/components/dashboard/DepositPanel';
 import { WithdrawPanel } from '@/components/dashboard/WithdrawPanel';
+import { useGaslessDeposit } from '@/hooks/useGaslessDeposit';
 
 interface DashboardViewProps {
   amount: string;
@@ -32,6 +34,57 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   amount,
   onAmountChange
 }) => {
+  const { address } = useAccount();
+  const { executeGaslessDeposit, isLoading, error, isApproveSuccess, isSuccess } = useGaslessDeposit();
+
+  // Track pending amount for retry after approval
+  const pendingAmountRef = useRef<string | null>(null);
+
+  // Automatically retry deposit after approval succeeds
+  useEffect(() => {
+    if (isApproveSuccess && pendingAmountRef.current) {
+      console.log('Approval successful! Retrying deposit with amount:', pendingAmountRef.current);
+      executeGaslessDeposit(pendingAmountRef.current);
+      pendingAmountRef.current = null;
+    }
+  }, [isApproveSuccess, executeGaslessDeposit]);
+
+  // Reset amount when deposit succeeds
+  useEffect(() => {
+    if (isSuccess) {
+      console.log('✅ Deposit completed successfully!');
+      onAmountChange('');
+    }
+  }, [isSuccess, onAmountChange]);
+
+  const handleDeposit = async () => {
+    if (!address || !amount) {
+      console.error('Missing address or amount');
+      alert('Please connect wallet and enter amount');
+      return;
+    }
+
+    try {
+      console.log('Starting gasless deposit:', {
+        address,
+        amount,
+      });
+
+      // Save amount for retry after approval
+      pendingAmountRef.current = amount;
+
+      // executeGaslessDeposit expects a string (USDC amount)
+      // It will handle the parseUnits internally
+      // If approval is needed, this will return early and trigger approval
+      // Then useEffect will automatically retry after approval
+      await executeGaslessDeposit(amount);
+    } catch (err) {
+      console.error('Deposit failed:', err);
+      pendingAmountRef.current = null;
+      alert(`Deposit failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 relative z-10">
       {/* Header */}
@@ -78,7 +131,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Deposit & Withdraw Operations */}
         <div className="grid md:grid-cols-2 gap-8">
           <BracketBox title="DEPOSIT OPERATIONS" className="border-[#5B8FFF]/50">
-            <DepositPanel amount={amount} onAmountChange={onAmountChange} />
+            <DepositPanel
+              amount={amount}
+              onAmountChange={onAmountChange}
+              onDeposit={handleDeposit}
+              isLoading={isLoading}
+            />
+            {error && (
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 text-red-500 text-sm font-mono">
+                Error: {error}
+              </div>
+            )}
           </BracketBox>
 
           <BracketBox title="WITHDRAW OPERATIONS">
