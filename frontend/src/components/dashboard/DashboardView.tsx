@@ -15,26 +15,13 @@
 'use client';
 
 import React from 'react';
-import { Globe, Activity } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useChainId } from 'wagmi';
-import { BracketBox } from '@/components/ui/BracketBox';
-import { YieldChart } from '@/components/dashboard/YieldChart';
-import { EventLog } from '@/components/dashboard/EventLog';
-import { DepositPanel } from '@/components/dashboard/DepositPanel';
-import { WithdrawPanel } from '@/components/dashboard/WithdrawPanel';
 import { YieldOpportunities } from '@/components/dashboard/YieldOpportunities';
 import { UnifiedBalance } from '@/components/dashboard/UnifiedBalance';
 
-interface DashboardViewProps {
-  amount: string;
-  onAmountChange: (value: string) => void;
-}
-
-export const DashboardView: React.FC<DashboardViewProps> = ({
-  amount,
-  onAmountChange
-}) => {
+export const DashboardView: React.FC = () => {
   const chainId = useChainId();
   const { chain } = useAccount();
 

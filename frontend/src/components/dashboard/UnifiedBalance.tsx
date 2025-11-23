@@ -24,7 +24,7 @@ export const UnifiedBalance: React.FC = () => {
   const { balances, loading, refreshBalances, error } = useNexus();
 
   const totalUSD = balances.reduce((sum, b) => {
-    const fiatValue = b.balanceInFiat ? parseFloat(b.balanceInFiat) : 0;
+    const fiatValue = b.usdValue || 0;
     return sum + fiatValue;
   }, 0);
 
@@ -64,7 +64,7 @@ export const UnifiedBalance: React.FC = () => {
           <div className="text-[#FF6B6B] font-bold mb-2">⚠️ Unable to load balances</div>
           <div className="text-gray-400 mb-3">{error}</div>
           <div className="text-xs text-gray-500">
-            Make sure you're connected to Sepolia testnet and have initialized the Nexus SDK.
+            Make sure you&apos;re connected to Sepolia testnet and have initialized the Nexus SDK.
           </div>
         </div>
       ) : balances.length === 0 ? (
@@ -79,7 +79,7 @@ export const UnifiedBalance: React.FC = () => {
           {balances
             .filter(balance => {
               // Only show tokens with non-zero balances
-              const amount = parseFloat(balance.balance || '0');
+              const amount = parseFloat(balance.amount || '0');
               return amount > 0;
             })
             .map((balance, index) => (
@@ -88,21 +88,21 @@ export const UnifiedBalance: React.FC = () => {
               className="flex justify-between items-center p-3 bg-[#0F1419] border border-white/10 hover:border-[#5B8FFF]/50 transition-colors"
             >
               <div>
-                <div className="font-bold text-white text-sm">{balance.symbol || balance.token}</div>
+                <div className="font-bold text-white text-sm">{balance.token}</div>
                 <div className="text-xs text-gray-400 font-mono">
                   {balance.chain || CHAIN_NAMES[balance.chainId] || 'Unknown Chain'}
                 </div>
               </div>
               <div className="text-right">
                 <div className="font-bold text-white text-sm font-mono">
-                  {balance.balance && parseFloat(balance.balance) > 0
-                    ? parseFloat(balance.balance).toFixed(4)
+                  {balance.amount && parseFloat(balance.amount) > 0
+                    ? parseFloat(balance.amount).toFixed(4)
                     : '0.0000'
                   }
                 </div>
                 <div className="text-xs text-gray-500">
-                  {balance.balanceInFiat && parseFloat(balance.balanceInFiat) > 0
-                    ? `$${parseFloat(balance.balanceInFiat).toFixed(2)}`
+                  {balance.usdValue && balance.usdValue > 0
+                    ? `$${balance.usdValue.toFixed(2)}`
                     : '$0.00'
                   }
                 </div>

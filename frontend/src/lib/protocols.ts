@@ -168,8 +168,6 @@ export function encodeAaveSupply(
   amount: bigint,
   onBehalfOf: string
 ): `0x${string}` {
-  const iface = ABIS.aaveV3Pool;
-
   // Manually encode since we have minimal ABI
   // supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)
   // Function selector: 0x617ba037
@@ -370,6 +368,7 @@ export class ProtocolDepositManager {
             functionName: 'approve',
             args: [aavePoolAddress as `0x${string}`, amountBigInt],
             account: userAddress as `0x${string}`,
+            chain,
           });
 
           onProgress?.('Waiting for approval confirmation...');
@@ -391,6 +390,7 @@ export class ProtocolDepositManager {
           0, // referral code
         ],
         account: userAddress as `0x${string}`,
+        chain,
       });
 
       onProgress?.('Waiting for deposit confirmation...');
@@ -467,6 +467,7 @@ export class ProtocolDepositManager {
           functionName: 'approve',
           args: [compoundAddress as `0x${string}`, amountBigInt],
           account: userAddress as `0x${string}`,
+          chain,
         });
 
         onProgress?.('Waiting for approval confirmation...');
@@ -482,6 +483,7 @@ export class ProtocolDepositManager {
         functionName: 'supply',
         args: [tokenAddress as `0x${string}`, amountBigInt],
         account: userAddress as `0x${string}`,
+        chain,
       });
 
       onProgress?.('Waiting for deposit confirmation...');

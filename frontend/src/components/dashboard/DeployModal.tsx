@@ -9,14 +9,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { BracketBox } from '@/components/ui/BracketBox';
-import { X, ArrowRight, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { YieldOpportunity, nexusManager } from '@/lib/nexus';
 import { useAccount, useBalance } from 'wagmi';
+
+interface DeployResult {
+  explorerUrl?: string;
+  message?: string;
+}
 
 interface DeployModalProps {
   opportunity: YieldOpportunity;
   onClose: () => void;
-  onDeploy: (opportunity: YieldOpportunity, amount: string, sourceToken?: string) => Promise<void>;
+  onDeploy: (opportunity: YieldOpportunity, amount: string, sourceToken?: string) => Promise<DeployResult>;
 }
 
 type DeploymentStep = 'input' | 'approving' | 'bridging' | 'deploying' | 'success' | 'error';

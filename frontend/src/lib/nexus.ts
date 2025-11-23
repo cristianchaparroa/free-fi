@@ -11,7 +11,6 @@
 
 import { NexusSDK, NEXUS_EVENTS } from '@avail-project/nexus-core';
 import { protocolDepositManager } from './protocols';
-import { encodeFunctionData } from 'viem';
 
 export interface YieldOpportunity {
   protocol: string;
@@ -106,7 +105,7 @@ class NexusManager {
       // Only set hooks if initialization was successful
       if (this.sdk && typeof this.sdk.setOnAllowanceHook === 'function') {
         // Set up approval hook to automatically approve max amount
-        this.sdk.setOnAllowanceHook(({ sources, allow, deny }: any) => {
+        this.sdk.setOnAllowanceHook(({ sources, allow }: any) => {
           console.log('🔐 Approval requested for:', sources);
           // Approve max amount for better UX (user will still confirm in wallet)
           allow(['max']);
@@ -115,7 +114,7 @@ class NexusManager {
 
       if (this.sdk && typeof this.sdk.setOnIntentHook === 'function') {
         // Set up intent hook for transaction confirmations
-        this.sdk.setOnIntentHook(({ intent, approve, reject }: any) => {
+        this.sdk.setOnIntentHook(({ intent, approve }: any) => {
           console.log('📝 Intent requested:', intent);
           // Auto-approve intent (user still confirms in wallet)
           approve();
@@ -223,10 +222,10 @@ class NexusManager {
           toChainId: targetChainId,
         },
         {
-          onEvent: (event) => {
+          onEvent: (event: any) => {
             console.log('📡 Bridge event:', event.name, event.args);
 
-            if (event.name === NEXUS_EVENTS.STEPS_LIST) {
+            if (event.name === NEXUS_EVENTS.EXPECTED_STEPS) {
               onProgress?.({ type: 'steps', steps: event.args });
             } else if (event.name === NEXUS_EVENTS.STEP_COMPLETE) {
               onProgress?.({ type: 'complete', step: event.args });
@@ -401,7 +400,7 @@ class NexusManager {
           onEvent: (event: any) => {
             console.log('📡 Swap event:', event.name, event.args);
 
-            if (event.name === NEXUS_EVENTS.STEPS_LIST) {
+            if (event.name === NEXUS_EVENTS.SWAP_STEPS) {
               onProgress?.({ type: 'steps', steps: event.args });
             } else if (event.name === NEXUS_EVENTS.STEP_COMPLETE) {
               onProgress?.({ type: 'complete', step: event.args });

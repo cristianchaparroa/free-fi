@@ -13,20 +13,11 @@ import { fetchAllYields } from '@/lib/defiLlama';
 import { DeployModal } from './DeployModal';
 import { nexusManager } from '@/lib/nexus';
 import type { YieldOpportunity } from '@/lib/nexus';
-import { useAccount, useBalance, useWalletClient } from 'wagmi';
-
-// Token addresses for balance checking (mainnet)
-const TOKEN_ADDRESSES: Record<string, `0x${string}` | undefined> = {
-  USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-  DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-  ETH: undefined, // Native token
-};
+import { useAccount, useWalletClient } from 'wagmi';
 
 interface OpportunityCardProps {
   opportunity: YieldOpportunity;
   isConnected: boolean;
-  address?: `0x${string}`;
   onDeploy: () => void;
   getRiskColor: (score: number) => string;
   getRiskLabel: (score: number) => string;
@@ -35,19 +26,10 @@ interface OpportunityCardProps {
 const OpportunityCard: React.FC<OpportunityCardProps> = ({
   opportunity,
   isConnected,
-  address,
   onDeploy,
   getRiskColor,
   getRiskLabel,
 }) => {
-  const { data: balance } = useBalance({
-    address,
-    token: TOKEN_ADDRESSES[opportunity.token],
-    chainId: opportunity.chainId, // Check balance on the opportunity's chain
-  });
-
-  const hasBalance = balance && parseFloat(balance.formatted) > 0;
-
   // Enable button if connected (Nexus will handle cross-chain bridging)
   const isDisabled = !isConnected;
 
@@ -134,7 +116,7 @@ export const YieldOpportunities: React.FC = () => {
     };
 
     loadYields();
-  }, [riskFilter, chainFilter, tokenFilter]);
+  }, [riskFilter, chainFilter, tokenFilter, displayCount]);
 
   const getRiskColor = (score: number) => {
     if (score <= 3) return 'text-[#2DD4BF]';
@@ -267,7 +249,6 @@ export const YieldOpportunities: React.FC = () => {
                 key={index}
                 opportunity={opp}
                 isConnected={isConnected}
-                address={address}
                 onDeploy={() => setSelectedOpportunity(opp)}
                 getRiskColor={getRiskColor}
                 getRiskLabel={getRiskLabel}

@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWalletClient, useAccount } from 'wagmi';
 import { nexusManager, UnifiedBalance } from '@/lib/nexus';
 
@@ -53,10 +53,11 @@ export function useNexus() {
     };
 
     initNexus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletClient, connector, chainId]); // Removed isInitialized from deps
 
-  // Fetch balances
-  const fetchBalances = async () => {
+  // Fetch balances (memoized to prevent re-creation on every render)
+  const fetchBalances = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -71,14 +72,14 @@ export function useNexus() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Auto-fetch balances ONLY when SDK is initialized
   useEffect(() => {
     if (isInitialized) {
       fetchBalances();
     }
-  }, [isInitialized]);
+  }, [isInitialized, fetchBalances]);
 
   return {
     isInitialized,
